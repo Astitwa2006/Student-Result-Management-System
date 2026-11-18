@@ -10,7 +10,7 @@
 | Layer    | Service | URL |
 |----------|---------|-----|
 | Frontend | Vercel  | [student-result-management-system-vert.vercel.app](https://student-result-management-system-vert.vercel.app) |
-| Backend  | Render  | *Set after Render deployment — update `public/index.html`* |
+| Backend  | Render  | [student-result-management-system-ug6ln.onrender.com](https://student-result-management-system-ug6ln.onrender.com) |
 
 ---
 
@@ -96,10 +96,10 @@ StudentResultManagementSystem/
 Open `public/index.html` and find this line (near the bottom of `<head>`):
 
 ```html
-window.__API_BASE__ = 'PLACEHOLDER_RENDER_URL';
+window.__API_BASE__ = 'https://student-result-management-system-ug6ln.onrender.com';
 ```
 
-Replace `PLACEHOLDER_RENDER_URL` with your Render URL:
+Replace `https://student-result-management-system-ug6ln.onrender.com` with your Render URL:
 
 ```html
 window.__API_BASE__ = 'https://student-result-management-system.onrender.com';

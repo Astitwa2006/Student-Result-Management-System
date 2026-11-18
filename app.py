@@ -96,12 +96,12 @@ ALLOWED_ORIGINS = [
     "https://student-result-management-system-vert.vercel.app",
     "https://student-result-management-system-astitwa-s-projects.vercel.app",
     "https://student-result-management-system-git-main-astitwa-s-projects.vercel.app",
+    "https://student-result-management-system-ug6ln.onrender.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
-    # Add your custom Vercel domain here if you configure one
 ]
 
 app.add_middleware(
