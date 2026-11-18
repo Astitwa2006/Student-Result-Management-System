@@ -1,82 +1,102 @@
 # Student Result Management System
 
-🎓 **Course:** Computational Thinking and Programming (Course Code: `2026CSAE100`)  
-👥 **Group Members:**
-1. **Prisha Mishra** (`S26CSEU1899`) — Research & Python Concept Analysis
-2. **Kinjal Kadiyan** (`S26CSEU1905`) — Research & Project Planning
-3. **Arnav Mittal** (`S26CSEU1901`) — Input & Data Management
-4. **Payal Kansal** (`S26CSEU1907`) — Testing & Error Checking
-5. **Jishnu Priya Hasini** (`S26CSEU1887`) — Documentation & Presentation
+A Python-based academic evaluation and analytics platform featuring automated grade calculation, competition ranking, statistical performance analysis, rule-based diagnostics, and an interactive web dashboard.
 
 ---
 
-## 🌟 Project Overview
+## 🌟 Key Features
 
-The **Student Result Management System** is a modular Python project engineered to automate academic evaluation. It eliminates manual errors by processing student scores across 5 core modules, executing multi-tier grading, computing fair competition rankings with tie-breaking, generating class dispersion statistics (Mean, Median, Standard Deviation), and providing prescriptive rule-based diagnostics to guide struggling students.
-
-The project offers **two interfaces** sharing the exact same Python computational core:
-1. **Interactive Terminal CLI (`main.py`):** Rich ANSI colored menu for console demonstration during viva.
-2. **Modern Web Dashboard (`app.py` / `server.py`):** Interactive browser dashboard with live KPI cards, search/filter table, modal forms, printable marksheets, and Matplotlib analytics charts.
+- **Automated Score Evaluation:** Computes total marks, percentage, 10-point GPA, and assigns letter grades (`A+` to `F`) using immutable grading thresholds.
+- **Competition Ranking Algorithm:** Implements standard competition ranking (`1224` format) with fair tie-breaking and relative student percentile calculations.
+- **Statistical Analytics Engine:** Computes descriptive cohort statistics including Class Mean, Median, Population Standard Deviation ($\sigma = \sqrt{\frac{1}{N}\sum(x-\mu)^2}$), Highest/Lowest performers, and subject-wise pass rates.
+- **Rule-Based Academic Diagnostics:** Prescribes targeted remedial guidance for subjects with marks $< 40$ or $>10\%$ below class average, recognizes subject mastery ($\ge 90$), and flags performance discrepancies.
+- **Dual User Interface:**
+  - **Interactive Web Dashboard:** Modern, responsive UI with real-time KPI metrics, search, sorting, grade filtering, live mark calculator modal, and printable academic marksheets.
+  - **Terminal CLI:** Full-featured console application with colored ANSI menus.
+- **Zero-Dependency Fallback Server:** Can run locally via Python's standard library `http.server` with zero external pip dependencies.
+- **Serverless Cloud Ready:** Configured for Vercel deployment with serverless runtime support.
 
 ---
 
-## 📂 Project Structure & Deliverables
+## 📂 Project Structure
 
 ```
 StudentResultManagementSystem/
 │
-├── core/                                   # Computational Engine
-│   ├── result_engine.py                    # Calculations, grades, rankings, stats, diagnostics, CSV I/O
-│   └── visualizer.py                       # Matplotlib chart generator (subject averages, grade donut, score spread)
+├── api/
+│   └── index.py                # Vercel serverless ASGI entrypoint
+│
+├── core/
+│   ├── result_engine.py        # Core computational engine & algorithms
+│   └── visualizer.py           # Matplotlib analytical chart generator
 │
 ├── data/
-│   ├── students.csv                        # Persistent CSV data storage (pre-seeded with 18 records)
-│   ├── charts/                             # Generated analytical charts (.png)
-│   └── reports/                            # Generated ASCII student report cards (.txt)
+│   └── students.csv            # Persistent CSV data storage
 │
-├── static/                                 # Web Dashboard Frontend
-│   ├── index.html                          # Semantic HTML5 dashboard layout
-│   ├── style.css                           # Modern, responsive UI design
-│   └── app.js                              # REST API controller, live calculator, filters & search
+├── static/
+│   ├── index.html              # Web dashboard interface
+│   ├── style.css               # Modern responsive styling
+│   └── app.js                  # Frontend controller & REST API client
 │
 ├── tests/
-│   └── test_result_system.py               # 11 automated unit tests (Payal Kansal's role)
+│   └── test_result_system.py   # Automated unit test suite (11 test cases)
 │
-├── main.py                                 # Interactive Terminal CLI Application
-├── app.py                                  # FastAPI Web Backend
-├── server.py                               # Zero-dependency fallback server (Python http.server)
+├── app.py                      # FastAPI web application backend
+├── server.py                   # Zero-dependency fallback standard library server
+├── main.py                     # Terminal CLI application
+├── requirements.txt            # Python dependencies
+├── vercel.json                 # Vercel deployment configuration
+├── .gitignore                  # Git ignore rules
 │
-├── generate_presentation.py                # Python script generating 12-slide PPTX
-├── generate_report_pdf.py                  # Python script generating 10-section PDF Report
-│
-├── Student_Result_Management_System_Presentation.pptx  # 12-slide PowerPoint presentation
-├── Student_Result_Management_System_Project_Report.pdf  # Formal academic PDF report
-├── PROJECT_REPORT.md                       # Comprehensive 10-section Markdown report
-├── VIVA_PREPARATION_GUIDE.md               # Master viva voce preparation guide for all 5 students
-│
-├── run_cli.sh                              # Run Terminal CLI
-├── run_web.sh                              # Run Web Dashboard
-└── run_tests.sh                            # Run Automated Unit Tests
+├── run_web.sh                  # Web dashboard launcher script
+├── run_cli.sh                  # Terminal CLI launcher script
+└── run_tests.sh                # Test suite launcher script
 ```
 
 ---
 
-## 🚀 Quick Start Instructions
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Optional: Virtual environment (`venv`)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Astitwa2006/Student-Result-Management-System.git
+   cd Student-Result-Management-System
+   ```
+
+2. (Optional) Install dependencies for the FastAPI web server and Matplotlib visualizer:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+---
+
+## 💻 Usage
 
 ### 1. Run the Web Dashboard
+
+**Option A — FastAPI Server (Recommended):**
 ```bash
-# Option A: Using launcher script
 ./run_web.sh
-
-# Option B: Run with virtual environment (FastAPI)
+# or
 python3 app.py
+```
+Open your browser at `http://127.0.0.1:8000`.
 
-# Option C: Zero-dependency fallback server (runs on any Python 3 machine without pip!)
+**Option B — Zero-Dependency Server (No pip packages required):**
+```bash
 python3 server.py 8000
 ```
-Open your browser at: **`http://127.0.0.1:8000`**
+Open your browser at `http://127.0.0.1:8000`.
 
 ### 2. Run the Terminal CLI
+
 ```bash
 ./run_cli.sh
 # or
@@ -84,31 +104,43 @@ python3 main.py
 ```
 
 ### 3. Run Automated Unit Tests
+
 ```bash
 ./run_tests.sh
 # or
 python3 -m unittest discover tests -v
 ```
-*(All 11 test cases pass with a 100% success rate)*
 
 ---
 
-## 💡 Key Computational Features
+## 📡 REST API Reference
 
-1. **Competition Ranking Algorithm:** Handles tied scores fairly (`1, 2, 2, 4` ranking) and calculates student percentiles.
-2. **Statistical Analysis:** Computes Class Mean ($\mu$), Median, Population Standard Deviation ($\sigma = \sqrt{\frac{1}{N}\sum(x-\mu)^2}$), Topper, and Subject-wise pass rates.
-3. **Rule-Based Diagnostic Intelligence:** Evaluates student scores against class averages:
-   - **Remedial Attention:** Flags marks $< 40$ and calculates the exact mark deficit.
-   - **Improvement Needed:** Flags subjects $> 10\%$ below class average.
-   - **Mastery:** Recognizes scores $\ge 90$ with honors and peer-mentorship recommendations.
-4. **Data Persistence:** Reads and writes CSV format without external database dependencies.
-5. **Formatted Marksheet Generation:** Generates individual printable ASCII report cards.
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Serves the web dashboard interface |
+| `GET` | `/api/meta` | System metadata (subjects, grading scales) |
+| `GET` | `/api/students` | Retrieve all student records with computed ranks |
+| `POST` | `/api/students` | Register a new student record (validates input) |
+| `DELETE` | `/api/students/{roll_no}` | Delete a student and recalculate class rankings |
+| `GET` | `/api/students/{roll_no}/report` | Generate individual report card with diagnostic advice |
+| `GET` | `/api/analytics` | Compute class statistical metrics & generate charts |
+| `GET` | `/api/export/csv` | Download the current CSV dataset |
 
 ---
 
-## 👥 Viva Voce Preparation
-Refer to **`VIVA_PREPARATION_GUIDE.md`** for:
-- Individual questions & model answers tailored to each team member's role.
-- Line-by-line function walkthroughs.
-- Predict-the-output drills.
-- Live code modification challenges commonly requested by examiners.
+## ☁️ Deployment (Vercel)
+
+The application is structured for Vercel deployment via `vercel.json` and `api/index.py`:
+
+```bash
+# Deploy with Vercel CLI
+vercel --prod
+```
+
+Or connect the GitHub repository directly to [Vercel](https://vercel.com/new) for continuous deployment on push.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.

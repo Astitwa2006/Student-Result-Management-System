@@ -40,3 +40,7 @@ ENV/
 
 # Vercel
 .vercel
+
+# Runtime generated outputs
+data/charts/*.png
+data/reports/*.txt
