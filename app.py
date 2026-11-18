@@ -9,8 +9,25 @@ Architecture:
 Locally: run with `uvicorn app:app --reload` then open http://127.0.0.1:8000
 """
 
+# ---------------------------------------------------------------------------
+# CRITICAL: Set writable dirs BEFORE any import that touches the filesystem.
+# matplotlib builds a font cache on first run. On fresh servers (Render) this
+# can take 60+ seconds and blocks the entire event loop if not redirected to /tmp.
+# ---------------------------------------------------------------------------
 import os
 import sys
+
+os.makedirs("/tmp/matplotlib", exist_ok=True)
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+
+# ---------------------------------------------------------------------------
+# Path setup
+# ---------------------------------------------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+import threading
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
@@ -19,13 +36,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-
-# ---------------------------------------------------------------------------
-# Path setup
-# ---------------------------------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
 
 from core.result_engine import (
     SUBJECTS,
@@ -38,42 +48,64 @@ from core.result_engine import (
     generate_academic_recommendations,
     generate_text_report_card,
 )
-from core.visualizer import generate_all_charts
 
 # ---------------------------------------------------------------------------
 # Directory constants
 # ---------------------------------------------------------------------------
 DATA_FILE  = os.path.join(BASE_DIR, "data", "students.csv")
-STATIC_DIR = os.path.join(BASE_DIR, "static")       # local fallback
-PUBLIC_DIR = os.path.join(BASE_DIR, "public")        # Vercel frontend (dev convenience)
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 CHARTS_DIR = os.path.join(BASE_DIR, "data", "charts")
+
+IS_RENDER = bool(os.environ.get("RENDER"))
+IS_VERCEL = bool(os.environ.get("VERCEL"))
 
 
 def get_charts_dir() -> str:
-    """Return writable charts directory. Uses /tmp on read-only environments."""
-    if os.environ.get("RENDER") or os.environ.get("VERCEL"):
-        tmp = "/tmp/charts"
-        os.makedirs(tmp, exist_ok=True)
-        return tmp
+    """Return writable charts directory. Uses /tmp on cloud environments."""
+    if IS_RENDER or IS_VERCEL:
+        d = "/tmp/charts"
+        os.makedirs(d, exist_ok=True)
+        return d
     os.makedirs(CHARTS_DIR, exist_ok=True)
     return CHARTS_DIR
 
 
-# ---------------------------------------------------------------------------
-# Startup: pre-generate charts so the first request is fast
-# ---------------------------------------------------------------------------
-@asynccontextmanager
-async def lifespan(application: FastAPI):
-    """Generate initial charts when the server starts."""
+def _generate_charts_background():
+    """
+    Generate charts in a background thread so startup is non-blocking.
+    matplotlib's font-cache build can take 30-60 s on a fresh server —
+    running it in a thread keeps the event loop (and all HTTP requests) live.
+    """
     try:
+        # Import here (inside thread) so the font-cache build doesn't block startup
+        from core.visualizer import generate_all_charts
         students = load_students_from_csv(DATA_FILE)
         if students:
             stats = compute_class_statistics(students)
             generate_all_charts(students, stats, get_charts_dir())
-            print(f"[startup] Charts generated for {len(students)} students.")
+            print(f"[charts] Generated for {len(students)} students.", flush=True)
     except Exception as exc:
-        print(f"[startup] Chart generation warning: {exc}")
-    yield
+        print(f"[charts] Background generation warning: {exc}", flush=True)
+
+
+# ---------------------------------------------------------------------------
+# Startup — non-blocking chart generation
+# ---------------------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    """Fast startup: verify data, kick off chart generation in background."""
+    try:
+        students = load_students_from_csv(DATA_FILE)
+        print(f"[startup] Ready — {len(students)} students in CSV.", flush=True)
+    except Exception as exc:
+        print(f"[startup] Data warning: {exc}", flush=True)
+
+    # Kick off chart generation without blocking the event loop
+    t = threading.Thread(target=_generate_charts_background, daemon=True)
+    t.start()
+
+    yield  # App is live and serving requests while charts build in background
 
 
 # ---------------------------------------------------------------------------
@@ -90,34 +122,22 @@ app = FastAPI(
 )
 
 # ---------------------------------------------------------------------------
-# CORS – allow Vercel frontend (and local dev) to call this backend
+# CORS — allow Vercel frontend and local dev to call this backend
 # ---------------------------------------------------------------------------
-ALLOWED_ORIGINS = [
-    "https://student-result-management-system-vert.vercel.app",
-    "https://student-result-management-system-astitwa-s-projects.vercel.app",
-    "https://student-result-management-system-git-main-astitwa-s-projects.vercel.app",
-    "https://student-result-management-system-ug6ln.onrender.com",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],          # Open for college project; restrict to Vercel domain in production
+    allow_credentials=False,       # Must be False when allow_origins=["*"]
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Accept", "Authorization"],
+    allow_headers=["Content-Type", "Accept"],
 )
 
 # ---------------------------------------------------------------------------
-# Serve static / public files for LOCAL DEVELOPMENT convenience
+# Serve static files for LOCAL development convenience
+# (On Render/Vercel, Vercel serves the frontend — this is a local fallback only)
 # ---------------------------------------------------------------------------
-_serve_dir = PUBLIC_DIR if os.path.isdir(PUBLIC_DIR) else (STATIC_DIR if os.path.isdir(STATIC_DIR) else None)
-if _serve_dir:
-    app.mount("/static", StaticFiles(directory=STATIC_DIR if os.path.isdir(STATIC_DIR) else _serve_dir), name="static-assets")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static-files")
 
 
 # ---------------------------------------------------------------------------
@@ -135,19 +155,23 @@ class StudentInput(BaseModel):
 
 @app.get("/", include_in_schema=False)
 def serve_index():
-    """Serve frontend for local development."""
+    """Serve frontend HTML for local development."""
     for candidate in [
         os.path.join(PUBLIC_DIR, "index.html"),
         os.path.join(STATIC_DIR, "index.html"),
     ]:
         if os.path.exists(candidate):
             return FileResponse(candidate)
-    return JSONResponse({"message": "Student Result Management System API", "docs": "/docs"})
+    return JSONResponse({
+        "message": "Student Result Management System API",
+        "docs": "/docs",
+        "health": "/api/health",
+    })
 
 
 @app.get("/api/health")
 def health_check():
-    """Health-check endpoint used by Render to verify the service is up."""
+    """Health-check endpoint for Render uptime monitoring."""
     students = load_students_from_csv(DATA_FILE)
     return {
         "status": "ok",
@@ -189,7 +213,7 @@ def get_students():
 @app.post("/api/students", status_code=201)
 def add_student(data: StudentInput):
     """Registers a new student with computational validation and rank recalculation."""
-    students = load_students_from_csv(DATA_FILE)
+    students  = load_students_from_csv(DATA_FILE)
     clean_roll = data.roll_no.strip().upper()
 
     if any(s["roll_no"] == clean_roll for s in students):
@@ -204,9 +228,8 @@ def add_student(data: StudentInput):
     students = compute_class_rankings(students)
     save_students_to_csv(students, DATA_FILE)
 
-    # Regenerate charts after data change
-    stats = compute_class_statistics(students)
-    generate_all_charts(students, stats, get_charts_dir())
+    # Regenerate charts in background after data change
+    threading.Thread(target=_generate_charts_background, daemon=True).start()
 
     created = next((s for s in students if s["roll_no"] == clean_roll), new_record)
     return {"message": "Student record created successfully.", "student": created}
@@ -225,9 +248,7 @@ def delete_student(roll_no: str):
 
     students = compute_class_rankings(students)
     save_students_to_csv(students, DATA_FILE)
-
-    stats = compute_class_statistics(students)
-    generate_all_charts(students, stats, get_charts_dir())
+    threading.Thread(target=_generate_charts_background, daemon=True).start()
 
     return {"message": f"Student '{clean_roll}' deleted. Rankings recalculated."}
 
@@ -255,10 +276,11 @@ def get_student_report(roll_no: str):
 
 @app.get("/api/analytics")
 def get_analytics():
-    """Computes class-wide analytics, regenerates chart PNGs, returns statistics."""
+    """Computes class-wide analytics and triggers chart regeneration."""
     students = load_students_from_csv(DATA_FILE)
     stats    = compute_class_statistics(students)
-    generate_all_charts(students, stats, get_charts_dir())
+    # Regenerate charts in background (non-blocking)
+    threading.Thread(target=_generate_charts_background, daemon=True).start()
     return stats
 
 
@@ -276,8 +298,7 @@ def export_csv():
 
 @app.get("/charts/{filename}")
 def serve_chart(filename: str):
-    """Serves generated chart PNG files from the writable charts directory."""
-    # Sanitise filename – prevent path traversal
+    """Serves generated chart PNG files."""
     if "/" in filename or ".." in filename:
         raise HTTPException(status_code=400, detail="Invalid filename.")
 
@@ -286,7 +307,7 @@ def serve_chart(filename: str):
         if os.path.exists(path):
             return FileResponse(path, media_type="image/png")
 
-    raise HTTPException(status_code=404, detail=f"Chart '{filename}' not found.")
+    raise HTTPException(status_code=404, detail=f"Chart '{filename}' not yet generated. Call /api/analytics first.")
 
 
 # ---------------------------------------------------------------------------
@@ -294,13 +315,6 @@ def serve_chart(filename: str):
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
-
-    # Pre-generate charts before serving
-    studs = load_students_from_csv(DATA_FILE)
-    st    = compute_class_statistics(studs)
-    os.makedirs(CHARTS_DIR, exist_ok=True)
-    generate_all_charts(studs, st, CHARTS_DIR)
-
     print("\n" + "="*60)
     print("  Student Result Management System — Local Server")
     print("  Open: http://127.0.0.1:8000")
