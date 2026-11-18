@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Result Management System | Python Project</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">🎓</div>
+        <div class="brand-text">
+          <h1>Student Result Management System</h1>
+          <span class="sub-badge">Course 2026CSAE100 &bull; Computational Thinking &amp; Programming</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnTeamModal" class="btn btn-outline" onclick="openTeamModal()">👥 Team Details</button>
+        <button id="btnExportCsv" class="btn btn-secondary" onclick="exportCsv()">📥 Download CSV</button>
+        <button id="btnOpenAddModal" class="btn btn-primary" onclick="openAddStudentModal()">+ Add Student</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- KPI Metric Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon icon-blue">👥</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Enrolled</span>
+          <h2 id="kpiTotalStudents">--</h2>
+          <span class="kpi-hint">Registered in semester</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-purple">📈</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Class Average</span>
+          <h2 id="kpiClassAverage">--%</h2>
+          <span class="kpi-hint" id="kpiMedian">Median: --%</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-gold">🏆</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Class Topper</span>
+          <h2 id="kpiTopperName">--</h2>
+          <span class="kpi-hint" id="kpiTopperScore">--% (Rank #1)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon icon-green">✅</div>
+        <div class="kpi-content">
+          <span class="kpi-label">Pass Rate</span>
+          <h2 id="kpiPassRate">--%</h2>
+          <span class="kpi-hint" id="kpiPassCount">-- passed, -- remedial</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-students')">📋 Student Directory &amp; Results</button>
+      <button class="tab-btn" onclick="switchTab('tab-analytics')">📊 Analytics &amp; Visualizations</button>
+      <button class="tab-btn" onclick="switchTab('tab-diagnostics')">💡 Rule-Based Diagnostics</button>
+      <button class="tab-btn" onclick="switchTab('tab-about')">ℹ️ Project Info &amp; Viva Scope</button>
+    </nav>
+
+    <!-- TAB 1: Student Directory -->
+    <section id="tab-students" class="tab-pane active">
+      <div class="table-controls-card">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by roll number or student name..." oninput="handleSearch()">
+        </div>
+        <div class="filter-controls">
+          <label>Filter Grade:
+            <select id="gradeFilter" onchange="applyFilters()">
+              <option value="ALL">All Grades</option>
+              <option value="A+">A+ (Outstanding)</option>
+              <option value="A">A (Excellent)</option>
+              <option value="B+">B+ (Very Good)</option>
+              <option value="B">B (Good)</option>
+              <option value="C">C (Average)</option>
+              <option value="D">D (Pass)</option>
+              <option value="F">F (Fail)</option>
+            </select>
+          </label>
+          <label>Status:
+            <select id="statusFilter" onchange="applyFilters()">
+              <option value="ALL">All Status</option>
+              <option value="PASS">Pass Only</option>
+              <option value="FAIL">Fail / Remedial Only</option>
+            </select>
+          </label>
+          <button class="btn btn-sm btn-ghost" onclick="resetFilters()">Reset</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('rank')">Rank ⬍</th>
+              <th onclick="sortTable('roll_no')">Roll Number ⬍</th>
+              <th onclick="sortTable('name')">Student Name ⬍</th>
+              <th>Marks Summary</th>
+              <th onclick="sortTable('total')">Total ⬍</th>
+              <th onclick="sortTable('percentage')">Percentage ⬍</th>
+              <th onclick="sortTable('grade')">Grade</th>
+              <th onclick="sortTable('status')">Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody">
+            <tr><td colspan="9" class="loading-cell">Loading student records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: Computational Analytics & Visualizations -->
+    <section id="tab-analytics" class="tab-pane">
+      <div class="analytics-header">
+        <div>
+          <h3>Computational Performance Analysis</h3>
+          <p class="section-desc">Class metrics calculated using Python statistical algorithms (Mean, Median, Standard Deviation, and Quartiles).</p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="refreshAnalytics()">🔄 Recompute &amp; Refresh Charts</button>
+      </div>
+
+      <!-- Subject Performance Table -->
+      <div class="card mb-4">
+        <h4>Subject-Wise Performance Breakdown</h4>
+        <div class="table-container">
+          <table class="data-table mini-table">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>Class Average</th>
+                <th>Highest Mark</th>
+                <th>Lowest Mark</th>
+                <th>Pass Rate</th>
+                <th>Standard Deviation</th>
+              </tr>
+            </thead>
+            <tbody id="subjectStatsBody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Generated Matplotlib Visualizations Grid -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h4>Subject Averages vs 40% Threshold</h4>
+          <p class="chart-caption">Visualizes cross-disciplinary mastery levels.</p>
+          <div class="chart-image-wrapper">
+            <img id="imgSubjectAverages" src="/charts/subject_averages.png" alt="Subject Averages Chart" onerror="this.src='/static/placeholder_chart.png'">
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>Grade Distribution</h4>
+          <p class="chart-caption">Relative proportions across standard academic grade tiers.</p>
+          <div class="chart-image-wrapper">
+            <img id="imgGradeDist" src="/charts/grade_distribution.png" alt="Grade Distribution Chart" onerror="this.src='/static/placeholder_chart.png'">
+          </div>
+        </div>
+
+        <div class="chart-card wide-card">
+          <h4>Score Spread &amp; Distribution Density</h4>
+          <p class="chart-caption">Histogram indicating score clustering relative to class mean and median.</p>
+          <div class="chart-image-wrapper">
+            <img id="imgScoreDist" src="/charts/score_distribution.png" alt="Score Distribution Chart" onerror="this.src='/static/placeholder_chart.png'">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Rule-Based Diagnostics -->
+    <section id="tab-diagnostics" class="tab-pane">
+      <div class="card mb-4">
+        <h3>Rule-Based Academic Advisory System</h3>
+        <p class="section-desc">
+          Automated rule-based computational intelligence. Analyzes individual student marks against passing thresholds and class standard deviations to prescribe actionable remedial plans and honors recognition.
+        </p>
+
+        <div class="diagnostics-split">
+          <div class="diag-column">
+            <div class="diag-header header-remedial">
+              <span class="icon">⚠️</span>
+              <h4>Students Flagged for Remedial Attention</h4>
+            </div>
+            <div id="remedialList" class="diag-list">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div class="diag-column">
+            <div class="diag-header header-merit">
+              <span class="icon">🌟</span>
+              <h4>Academic Merit &amp; Honors List (≥85%)</h4>
+            </div>
+            <div id="meritList" class="diag-list">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Project Info & Viva Scope -->
+    <section id="tab-about" class="tab-pane">
+      <div class="card mb-4">
+        <h3>Project Technical Architecture &amp; Viva Guide</h3>
+        <p class="section-desc">Course: Computational Thinking and Programming (2026CSAE100) &bull; Collaborative Project</p>
+
+        <div class="grid-2col">
+          <div class="info-box">
+            <h4>🧠 Computational Thinking Highlights</h4>
+            <ul>
+              <li><strong>Decomposition:</strong> Divided result processing into validation, mathematical calculation, ranking algorithm, and report generation.</li>
+              <li><strong>Pattern Recognition:</strong> Grade classification through ordered threshold mapping tuples.</li>
+              <li><strong>Abstraction:</strong> Encapsulated student records in standardized dictionaries with clean functional APIs.</li>
+              <li><strong>Algorithm Design:</strong> Multi-tiered tie-breaking competition ranking and rule-based diagnostic engine.</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h4>🐍 Python Concepts Implemented</h4>
+            <ul>
+              <li><strong>Lists &amp; Tuples:</strong> Immutable grade brackets <code>GRADE_SCALE</code> and sorted student cohorts.</li>
+              <li><strong>Dictionaries:</strong> Structured student data and nested subject mark mappings.</li>
+              <li><strong>Sets:</strong> Unique failed subject detection and duplicate roll number protection.</li>
+              <li><strong>File I/O:</strong> CSV reading/writing via Python <code>csv.DictReader/DictWriter</code> and TXT report generation.</li>
+              <li><strong>Exception Handling:</strong> Defensive boundary verification and graceful fallback.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: Add Student Modal -->
+  <div id="modalAddStudent" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Add New Student Record</h3>
+        <button class="close-btn" onclick="closeAddStudentModal()">&times;</button>
+      </div>
+      <form id="formAddStudent" onsubmit="submitNewStudent(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newRoll">Roll Number *</label>
+              <input type="text" id="newRoll" placeholder="e.g. S26CSEU1920" required>
+            </div>
+            <div class="form-group">
+              <label for="newName">Full Name *</label>
+              <input type="text" id="newName" placeholder="e.g. Rohit Verma" required>
+            </div>
+          </div>
+
+          <h5 class="form-subtitle">Enter Marks for 5 Subjects (0 to 100):</h5>
+          <div class="marks-grid">
+            <div class="form-group">
+              <label>Python Programming</label>
+              <input type="number" id="markPython" min="0" max="100" step="0.5" placeholder="0-100" required oninput="calculateLiveTotal()">
+            </div>
+            <div class="form-group">
+              <label>Mathematics</label>
+              <input type="number" id="markMaths" min="0" max="100" step="0.5" placeholder="0-100" required oninput="calculateLiveTotal()">
+            </div>
+            <div class="form-group">
+              <label>Digital Electronics</label>
+              <input type="number" id="markElectronics" min="0" max="100" step="0.5" placeholder="0-100" required oninput="calculateLiveTotal()">
+            </div>
+            <div class="form-group">
+              <label>Physics</label>
+              <input type="number" id="markPhysics" min="0" max="100" step="0.5" placeholder="0-100" required oninput="calculateLiveTotal()">
+            </div>
+            <div class="form-group">
+              <label>Professional Comm.</label>
+              <input type="number" id="markEnglish" min="0" max="100" step="0.5" placeholder="0-100" required oninput="calculateLiveTotal()">
+            </div>
+          </div>
+
+          <!-- Live Preview Box -->
+          <div class="preview-box">
+            <span>Live Calculation:</span>
+            <span>Total: <strong id="liveTotal">0.0</strong> / 500</span>
+            <span>Percentage: <strong id="livePercentage">0.00%</strong></span>
+            <span>Predicted Grade: <strong id="liveGrade">--</strong></span>
+          </div>
+          <div id="addErrorMsg" class="error-banner" style="display:none;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeAddStudentModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Student Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Report Card Modal -->
+  <div id="modalReportCard" class="modal-overlay">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3>Academic Performance Marksheet</h3>
+        <button class="close-btn" onclick="closeReportCardModal()">&times;</button>
+      </div>
+      <div class="modal-body printable-area" id="reportCardContent">
+        <!-- Rendered dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="downloadReportCardTxt()">📄 Download TXT</button>
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Marksheet</button>
+        <button class="btn btn-primary" onclick="closeReportCardModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Team Details Modal -->
+  <div id="modalTeam" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Project Team &amp; Contribution Roles</h3>
+        <button class="close-btn" onclick="closeTeamModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">Group collaboration under Milestone 1 &amp; 2 guidelines:</p>
+        <div class="team-cards-grid">
+          <div class="team-member-card">
+            <div class="member-avatar">PM</div>
+            <div class="member-info">
+              <h4>Prisha Mishra</h4>
+              <span class="member-roll">S26CSEU1899</span>
+              <p class="member-role">Research and Python concept analysis</p>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <div class="member-avatar">KK</div>
+            <div class="member-info">
+              <h4>Kinjal Kadiyan</h4>
+              <span class="member-roll">S26CSEU1905</span>
+              <p class="member-role">Research and project planning</p>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <div class="member-avatar">AM</div>
+            <div class="member-info">
+              <h4>Arnav Mittal</h4>
+              <span class="member-roll">S26CSEU1901</span>
+              <p class="member-role">Input and data management</p>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <div class="member-avatar">PK</div>
+            <div class="member-info">
+              <h4>Payal Kansal</h4>
+              <span class="member-roll">S26CSEU1907</span>
+              <p class="member-role">Testing and error checking</p>
+            </div>
+          </div>
+          <div class="team-member-card">
+            <div class="member-avatar">JH</div>
+            <div class="member-info">
+              <h4>Jishnu Priya Hasini</h4>
+              <span class="member-roll">S26CSEU1887</span>
+              <p class="member-role">Documentation and presentation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeTeamModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
