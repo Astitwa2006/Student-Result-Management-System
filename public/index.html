@@ -8,10 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <!-- ===== BACKEND CONFIGURATION =====
-       After deploying to Render, replace the URL below with your Render service URL.
-       Example: window.__API_BASE__ = 'https://student-result-management-system.onrender.com';
-       ===================================== -->
+  <!-- Backend API URL — update after Render deployment -->
   <script>
     window.__API_BASE__ = 'https://student-result-management-system-ug6ln.onrender.com';
   </script>
@@ -83,7 +80,6 @@
       <button class="tab-btn active" onclick="switchTab('tab-students')">📋 Student Directory &amp; Results</button>
       <button class="tab-btn" onclick="switchTab('tab-analytics')">📊 Analytics &amp; Visualizations</button>
       <button class="tab-btn" onclick="switchTab('tab-diagnostics')">💡 Rule-Based Diagnostics</button>
-      <button class="tab-btn" onclick="switchTab('tab-about')">ℹ️ Project Info &amp; Viva Scope</button>
     </nav>
 
     <!-- TAB 1: Student Directory -->
@@ -177,7 +173,7 @@
           <h4>Subject Averages vs 40% Threshold</h4>
           <p class="chart-caption">Visualizes cross-disciplinary mastery levels.</p>
           <div class="chart-image-wrapper">
-            <img id="imgSubjectAverages" src="" alt="Subject Averages Chart" onerror="this.src='/static/placeholder_chart.png'">
+            <img id="imgSubjectAverages" src="" alt="Subject Averages Chart" onerror="this.style.display='none'">
           </div>
         </div>
 
@@ -185,7 +181,7 @@
           <h4>Grade Distribution</h4>
           <p class="chart-caption">Relative proportions across standard academic grade tiers.</p>
           <div class="chart-image-wrapper">
-            <img id="imgGradeDist" src="" alt="Grade Distribution Chart" onerror="this.src='/static/placeholder_chart.png'">
+            <img id="imgGradeDist" src="" alt="Grade Distribution Chart" onerror="this.style.display='none'">
           </div>
         </div>
 
@@ -193,7 +189,7 @@
           <h4>Score Spread &amp; Distribution Density</h4>
           <p class="chart-caption">Histogram indicating score clustering relative to class mean and median.</p>
           <div class="chart-image-wrapper">
-            <img id="imgScoreDist" src="" alt="Score Distribution Chart" onerror="this.src='/static/placeholder_chart.png'">
+            <img id="imgScoreDist" src="" alt="Score Distribution Chart" onerror="this.style.display='none'">
           </div>
         </div>
       </div>
@@ -231,38 +227,8 @@
       </div>
     </section>
 
-    <!-- TAB 4: Project Info & Viva Scope -->
-    <section id="tab-about" class="tab-pane">
-      <div class="card mb-4">
-        <h3>Project Technical Architecture &amp; Viva Guide</h3>
-        <p class="section-desc">Course: Computational Thinking and Programming (2026CSAE100) &bull; Collaborative Project</p>
 
-        <div class="grid-2col">
-          <div class="info-box">
-            <h4>🧠 Computational Thinking Highlights</h4>
-            <ul>
-              <li><strong>Decomposition:</strong> Divided result processing into validation, mathematical calculation, ranking algorithm, and report generation.</li>
-              <li><strong>Pattern Recognition:</strong> Grade classification through ordered threshold mapping tuples.</li>
-              <li><strong>Abstraction:</strong> Encapsulated student records in standardized dictionaries with clean functional APIs.</li>
-              <li><strong>Algorithm Design:</strong> Multi-tiered tie-breaking competition ranking and rule-based diagnostic engine.</li>
-            </ul>
-          </div>
-
-          <div class="info-box">
-            <h4>🐍 Python Concepts Implemented</h4>
-            <ul>
-              <li><strong>Lists &amp; Tuples:</strong> Immutable grade brackets <code>GRADE_SCALE</code> and sorted student cohorts.</li>
-              <li><strong>Dictionaries:</strong> Structured student data and nested subject mark mappings.</li>
-              <li><strong>Sets:</strong> Unique failed subject detection and duplicate roll number protection.</li>
-              <li><strong>File I/O:</strong> CSV reading/writing via Python <code>csv.DictReader/DictWriter</code> and TXT report generation.</li>
-              <li><strong>Exception Handling:</strong> Defensive boundary verification and graceful fallback.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
+    </main>
 
   <!-- MODAL 1: Add Student Modal -->
   <div id="modalAddStudent" class="modal-overlay">
@@ -351,7 +317,7 @@
         <button class="close-btn" onclick="closeTeamModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">Group collaboration under Milestone 1 &amp; 2 guidelines:</p>
+        <p class="text-muted mb-3">Course 2026CSAE100 · Computational Thinking and Programming</p>
         <div class="team-cards-grid">
           <div class="team-member-card">
             <div class="member-avatar">PM</div>

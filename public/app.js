@@ -32,7 +32,7 @@ const SUBJECT_KEYS = [
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
   if (!API_BASE) {
-    showToast("⚠️ Backend URL not configured. Set window.__API_BASE__ in index.html.", "error");
+    console.error("Student Result System: Backend URL not configured. Set window.__API_BASE__ in public/index.html.");
   }
   fetchMetadata();
   loadData();
@@ -87,7 +87,7 @@ async function loadData() {
     }
   } catch (err) {
     console.error("Error loading data:", err);
-    showToast("Failed to connect to backend. Check API_BASE config.", "error");
+    showToast("Failed to load student data. Please try refreshing the page.", "error");
   }
 }
 

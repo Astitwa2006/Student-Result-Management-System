@@ -76,7 +76,6 @@
       <button class="tab-btn active" onclick="switchTab('tab-students')">📋 Student Directory &amp; Results</button>
       <button class="tab-btn" onclick="switchTab('tab-analytics')">📊 Analytics &amp; Visualizations</button>
       <button class="tab-btn" onclick="switchTab('tab-diagnostics')">💡 Rule-Based Diagnostics</button>
-      <button class="tab-btn" onclick="switchTab('tab-about')">ℹ️ Project Info &amp; Viva Scope</button>
     </nav>
 
     <!-- TAB 1: Student Directory -->
@@ -224,38 +223,8 @@
       </div>
     </section>
 
-    <!-- TAB 4: Project Info & Viva Scope -->
-    <section id="tab-about" class="tab-pane">
-      <div class="card mb-4">
-        <h3>Project Technical Architecture &amp; Viva Guide</h3>
-        <p class="section-desc">Course: Computational Thinking and Programming (2026CSAE100) &bull; Collaborative Project</p>
 
-        <div class="grid-2col">
-          <div class="info-box">
-            <h4>🧠 Computational Thinking Highlights</h4>
-            <ul>
-              <li><strong>Decomposition:</strong> Divided result processing into validation, mathematical calculation, ranking algorithm, and report generation.</li>
-              <li><strong>Pattern Recognition:</strong> Grade classification through ordered threshold mapping tuples.</li>
-              <li><strong>Abstraction:</strong> Encapsulated student records in standardized dictionaries with clean functional APIs.</li>
-              <li><strong>Algorithm Design:</strong> Multi-tiered tie-breaking competition ranking and rule-based diagnostic engine.</li>
-            </ul>
-          </div>
-
-          <div class="info-box">
-            <h4>🐍 Python Concepts Implemented</h4>
-            <ul>
-              <li><strong>Lists &amp; Tuples:</strong> Immutable grade brackets <code>GRADE_SCALE</code> and sorted student cohorts.</li>
-              <li><strong>Dictionaries:</strong> Structured student data and nested subject mark mappings.</li>
-              <li><strong>Sets:</strong> Unique failed subject detection and duplicate roll number protection.</li>
-              <li><strong>File I/O:</strong> CSV reading/writing via Python <code>csv.DictReader/DictWriter</code> and TXT report generation.</li>
-              <li><strong>Exception Handling:</strong> Defensive boundary verification and graceful fallback.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
+    </main>
 
   <!-- MODAL 1: Add Student Modal -->
   <div id="modalAddStudent" class="modal-overlay">
@@ -344,7 +313,7 @@
         <button class="close-btn" onclick="closeTeamModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="text-muted mb-3">Group collaboration under Milestone 1 &amp; 2 guidelines:</p>
+        <p class="text-muted mb-3">Course 2026CSAE100 · Computational Thinking and Programming</p>
         <div class="team-cards-grid">
           <div class="team-member-card">
             <div class="member-avatar">PM</div>
